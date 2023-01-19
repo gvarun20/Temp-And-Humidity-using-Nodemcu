@@ -1,0 +1,77 @@
+#include "DHT.h"
+#include<ESP8266WiFi.h>
+#include<WiFiClient.h>
+#include<ThingSpeak.h> 
+long unsigned int myChannelNumber = 2002098;
+const char *apiKey="U415FV5B032AP8XK";
+const char* ssid ="NETGEAR58";
+const char* pass ="20Mar2002";
+const char* server ="api.thinkspeak.com";
+WiFiClient client;
+
+DHT dht;
+int WET= 16; // Wet Indicator at Digital PIN D0
+int DRY= 0;  // Dry Indicator at Digital PIN D4
+
+int sense_Pin= 0; // Soil Sensor input at Analog PIN A0
+int value= 0;
+void setup() {
+ // initialize digital pin LED_BUILTIN as an output.
+  pinMode(LED_BUILTIN, OUTPUT);
+   Serial.begin(9600);
+  Serial.println();
+  Serial.println("Status\tHumidity (%)\tTemperature (C)\t(F)");
+  dht.setup(D1); 
+    Serial.begin(9600);
+   pinMode(DRY, OUTPUT);
+   pinMode(WET, OUTPUT);
+   delay(10000);
+   WiFi.begin(ssid,pass);
+   ThingSpeak.begin(client);
+
+}
+  
+
+void loop() 
+{
+   Serial.print("MOISTURE LEVEL : ");
+   value= analogRead(sense_Pin);
+   value= value/10;
+  // Serial.println(value);
+  // if(value<100)
+   {
+   //   digitalWrite(DRY, HIGH);
+   //   Serial.println("WET");
+  // }
+  // else
+  // {
+  //    digitalWrite(WET,HIGH);
+  //    Serial.println("DRY");
+  // }
+  // delay(1000);
+  // digitalWrite(WET,LOW);
+ //  digitalWrite(DRY, LOW);
+  // gauge.clear();
+   // digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+ // delay(1000);                       // wait for a second
+ // digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+  //delay(1000);    // wait for a second
+ delay(dht.getMinimumSamplingPeriod()); /* Delay of amount equal to sampling period */
+  float humidity = dht.getHumidity();/* Get humidity value */
+  float temperature = dht.getTemperature();/* Get temperature value */
+    Serial.println("Status\tHumidity (%)\tTemperature (C)\t\t(F)");
+  Serial.print(dht.getStatusString());/* Print status of communication */
+
+
+  Serial.print("\t\t");
+  Serial.print(humidity, 1);
+  Serial.print("\t\t");
+  Serial.print(temperature, 1);
+  Serial.print("\t\t");
+  Serial.println(dht.toFahrenheit(temperature), 1);/* Convert temperature to Fahrenheit units */
+  ThingSpeak.writeFields(myChannelNumber,apiKey);
+  ThingSpeak.setField(1, temperature);
+  ThingSpeak.setField(2, humidity);
+   }
+   }
+ 
